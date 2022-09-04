@@ -1,5 +1,6 @@
 package com.mysite.cafe.controller;
 
+import com.mysite.cafe.Service.ArticleService;
 import com.mysite.cafe.Ut.Ut;
 import com.mysite.cafe.dao.Article;
 import com.mysite.cafe.repository.ArticleRepository;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -17,6 +17,8 @@ public class ArticleController {
 
     @Autowired
     private ArticleRepository articleRepository;
+    @Autowired
+    private ArticleService articleService;
 
     // C생성 ==============================
     @RequestMapping("/write")
@@ -29,29 +31,22 @@ public class ArticleController {
             return "내용을 입력해주세요.";
         }
 
-        Article article = new Article();
-        article.setRegDate(LocalDateTime.now());
-        article.setUpdateDate(LocalDateTime.now());
-        article.setTitle(title);
-        article.setBody(body);
-        article.setUserId(1L);
-
-        articleRepository.save(article);
-
-        return "%d번 게시물이 생성 되었습니다.".formatted(article.getId());
+        articleService.write(title, body);
+        return "%d번 게시물이 생성 되었습니다.";
     }
 
     // R읽기 ==============================
     @RequestMapping("/list") // 게시글 전체 조회
     @ResponseBody
     public List<Article> showList(){
-        return articleRepository.findAll();
+        List<Article> articles = articleService.getLists();
+        return articles;
     }
 
     @RequestMapping("/detail") // 게시글 단건 조회
     @ResponseBody
     public Article showDetail(Long id){
-        Article article = articleRepository.findById(id).get();
+        Article article = articleService.getList(id);
         return article;
     }
 
@@ -62,7 +57,7 @@ public class ArticleController {
         if(id == null){
             return "게시물 번호를 입력해주세요.";
         }
-        if(articleRepository.existsById(id)){
+        if(articleService.findList(id)){
             return "게시물이 없습니다.";
         }
         if(Ut.empty(title)){
@@ -72,25 +67,19 @@ public class ArticleController {
             return "내용을 입력하세요.";
         }
 
-        Article article = articleRepository.findById(id).get();
-        article.setTitle(title);
-        article.setBody(body);
-        article.setUpdateDate(LocalDateTime.now());
-
-        articleRepository.save(article);
-
-        return  "%번 게시물 수정이 완료 되었습니다.".formatted(article.getId());
+        articleService.modify(id, title, body);
+        return  "%번 게시물 수정이 완료 되었습니다.";
     }
 
     // D삭제 ==============================
     @RequestMapping("/delete")
     @ResponseBody
     public String delete(Long id){
-        if(!articleRepository.existsById(id)){
-            return "%d번 게시물이 없습니다.".formatted(id);
+        if(articleService.findList(id)){
+            return "%d번 게시물이 없습니다.";
         }
-        Article article = articleRepository.findById(id).get();
-        articleRepository.delete(article);
+
+        articleService.delete(id);
 
         return "%d번 게시물을 삭제 했습니다.".formatted(id);
     }
