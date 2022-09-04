@@ -1,7 +1,9 @@
 package com.mysite.cafe.Service;
 
 import com.mysite.cafe.dao.Article;
+import com.mysite.cafe.dao.User;
 import com.mysite.cafe.repository.ArticleRepository;
+import com.mysite.cafe.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.List;
 public class ArticleService {
     @Autowired
     private ArticleRepository articleRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public void write(String title, String body){
         Article article = new Article();
@@ -19,7 +23,8 @@ public class ArticleService {
         article.setUpdateDate(LocalDateTime.now());
         article.setTitle(title);
         article.setBody(body);
-        article.setUserId(1L);
+        User user = userRepository.findById(1L).get();
+        article.setUser(user);
 
         articleRepository.save(article);
     }
